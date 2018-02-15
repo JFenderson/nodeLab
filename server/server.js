@@ -44,45 +44,39 @@ const reddits = path.join(__dirname, '../reddit.js');
 
 // });
     
+// rp('https://reddit.com/r/popular.json')
+//     .then((res) => {
+//         const parsed = JSON.parse(res);
+//         const articles = parsed.data.children;
+//         const filteredArticles = articles.map((article) =>{
+//             return {
+//                 title: article.data.title,
+//                 author: article.data.author,
+//                 url: article.data.url
+//             };
+//         });
+
+//         fs.writeFile(dataPath, JSON.stringify(filteredArticles) , (err) => {
+//             console.log('wrote to file');
+//         })
+//     })
+
 rp('https://reddit.com/r/popular.json')
-    .then((res) => {
-        const parsed = JSON.parse(res);
-        const articles = parsed.data.children;
-        const filteredArticles = articles.map((article) =>{
-            return {
-                title: article.data.title,
-                author: article.data.author,
-                url: article.data.url
-            };
-        });
+.then((res) => {
+    const parsed = JSON.parse(res);
+    const articles = parsed.data.children;
+    let downloads = []
+    articles.map((article) =>{
+        if(!article.preview.reddit_video_preview.is_gif){
+            return;
+        }
 
-        fs.writeFile(dataPath, JSON.stringify(filteredArticles) , (err) => {
-            console.log('wrote to file');
+        downloads.push(rp(article.data.url).pipe(fs.createWriteStream(path.join(__dirname, 'downloads', `${article.data.id}.gif`))));
+    });
+
+    Promise.all(downloads)
+        .then((res) => {
+            console.log('yay')
         })
-    })
+})
 
-// rp('https://reddit.com/r/popular.json',(err, res, body) => {
-//     if(err) {
-//         console.log(err);
-//     }
-//     console.log('reddit loaded');
-    
-//     JSON.parse(body).data.children.forEach(item => {
-//         fs.appendFileSync(reddits, item.data.title + '\n');
-//         fs.appendFileSync(reddits, item.data.url + '\n');
-//         fs.appendFileSync(reddits, item.data.author + '\n');
-        
-//     });
-//     console.log('json parsed');
-//     // fs.writeFile(dataPath, res.body, err => {
-//     //     if(err) console.log(err);
-//     // });
-// });
-    
-
-// fs.readFile(dataPath,'UTF-8',(err, data) => {
-
-//     const chirp = JSON.parse(data);
-
-//     console.log(chirp);
-// })
